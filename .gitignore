@@ -1,0 +1,8 @@
+# Original oversized video archive — exceeds GitHub's 100 MB per-file limit.
+# The video is committed as 20 MB chunks under video-parts/ instead.
+Video-*.zip
+
+# Rejoined video archive — regenerate locally from video-parts/
+# (see video-parts/HOW-TO-REJOIN.md)
+video.zip
+video-parts/video.zip
