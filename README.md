@@ -20,13 +20,8 @@ An enterprise-grade, full-stack automation platform that converts traditional RE
 10. [Component Functionality Guide](#10-component-functionality-guide)
 11. [Backend REST API Reference](#11-backend-rest-api-reference)
 12. [Tech Stack](#12-tech-stack)
-13. [Installation Guide — Windows (Local)](#13-installation-guide--windows-local)
-14. [Cloud Deployment](#14-cloud-deployment)
-15. [Environment Variables Reference](#15-environment-variables-reference)
-16. [AI MCP Proxy Plugin Configuration](#16-ai-mcp-proxy-plugin-configuration)
-17. [Testing](#17-testing)
-18. [Troubleshooting](#18-troubleshooting)
-19. [Roadmap & Planned Enhancements](#19-roadmap--planned-enhancements)
+13. [AI MCP Proxy Plugin Configuration](#16-ai-mcp-proxy-plugin-configuration)
+14. [Testing](#17-testing)
 
 ---
 
@@ -391,7 +386,7 @@ sequenceDiagram
 
 ## 7. Platform Tools Overview
 
-### Tool 1: Traditional APIs to Kong MCP Servers ✅ Active
+### Tool: Traditional APIs to Kong MCP Servers ✅ Active
 
 Converts REST API definitions into Kong Gateway MCP servers using the `ai-mcp-proxy` plugin. Supports **two input sources**:
 
@@ -412,22 +407,6 @@ A 5-tab wizard that handles both input sources:
 3. **Code Viewer** — Preview generated/enhanced YAML with syntax highlighting
 4. **Validate & Deploy** — `deck validate` → optional diff preview → `deck sync`
 5. **Test Proxy** — Verify deployed MCP tools *(coming soon)*
-
-### Tool 2: AI Decision Gateway 🔄 Planned
-
-AI-based intelligent routing and pre-processing layer that uses LLM inference to make routing decisions before forwarding requests to Kong.
-
-### Tool 3: AI Response Enrichment 🔄 Planned
-
-Post-processing layer that enriches REST API responses with AI-generated context, summaries, or structured data.
-
-### Tool 4: Natural Language API Access 🔄 Planned
-
-Natural language interface to query and invoke any Kong-managed API — the LLM maps natural language intent to the correct API call.
-
-### Tool 5: AI Orchestrated Multi-API Workflows 🔄 Planned
-
-AI agent that sequences calls across multiple Kong-managed APIs to fulfil complex multi-step requests.
 
 ---
 
@@ -626,10 +605,6 @@ MCPMakerForKong/
 │
 ├── Kong_MCP_Marketplace.yaml             # Example: Marketplace API Kong config
 ├── Kong_MCP_Proxies.yaml                 # Example: Additional proxy configs
-├── test_e2e.py
-├── test_integration.py
-├── test_path_params.py
-├── test_verify_select_tags.py
 ├── ARCHITECTURE.md
 ├── INSTALLATION.md
 ├── API_REFERENCE.md
@@ -1018,182 +993,7 @@ Content-Type: application/json
 
 ---
 
-## 13. Installation Guide — Windows (Local)
-
-### Prerequisites
-
-| Requirement | Version | Notes |
-|-------------|---------|-------|
-| Python | 3.9+ | [python.org](https://python.org) |
-| Node.js | 18+ | [nodejs.org](https://nodejs.org) |
-| deck CLI | 1.30+ | Required for both paths |
-| Kong Gateway | 3.x | Running locally or cloud-hosted |
-| Kong Konnect account | — | Required for Path B (download/deploy) |
-
-#### Install deck CLI (Windows)
-
-Download `deck_X.Y.Z_windows_amd64.zip` from [GitHub releases](https://github.com/Kong/deck/releases), extract, and add to `PATH`.
-
-```powershell
-deck version   # verify
-```
-
-### Backend Setup
-
-```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate          # Windows
-# source venv/bin/activate     # macOS/Linux
-
-pip install -r requirements.txt
-copy .env.example .env         # then edit with your credentials
-python app.py
-# → http://localhost:5000
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
-npm install
-echo REACT_APP_API_URL=http://localhost:5000 > .env
-npm start
-# → http://localhost:3000
-```
-
-### First Run
-
-1. Open [http://localhost:3000](http://localhost:3000)
-2. Login: `admin` / `admin123`
-3. Navigate to **Tool 1 → Option 2**
-4. Choose your input source:
-   - **OpenAPI Spec** → upload `.json` or `.yaml` files → generate → deploy
-   - **Existing Kong YAML** → download from Konnect or upload file → enhance → deploy
-
----
-
-## 14. Cloud Deployment
-
-### AWS EC2 / gunicorn
-
-```bash
-cd backend
-gunicorn app:app \
-  --bind 0.0.0.0:5000 \
-  --workers 4 \
-  --timeout 120 \
-  --access-logfile logs/access.log
-```
-
-### nginx (Frontend)
-
-```nginx
-server {
-    listen 80;
-    root /var/www/mcpmakerforkong/frontend/build;
-    index index.html;
-    location / { try_files $uri /index.html; }
-    location /api/ {
-        proxy_pass http://localhost:5000;
-        proxy_set_header Host $host;
-    }
-}
-```
-
-### Docker Compose
-
-```yaml
-version: '3.8'
-services:
-  backend:
-    build: ./backend
-    ports: ["5000:5000"]
-    env_file: ./backend/.env
-    volumes:
-      - ./backend/inputs:/app/inputs
-      - ./backend/outputs:/app/outputs
-      - ./backend/kong_konnect_inputs:/app/kong_konnect_inputs
-      - ./backend/kong_konnect_outputs:/app/kong_konnect_outputs
-      - ./backend/logs:/app/logs
-  frontend:
-    build: ./frontend
-    ports: ["3000:3000"]
-    env_file: ./frontend/.env
-    depends_on: [backend]
-```
-
----
-
-## 15. Environment Variables Reference
-
-### Backend `.env`
-
-```env
-# ── Flask ─────────────────────────────────────────────────────
-FLASK_ENV=development
-FLASK_APP=app.py
-FLASK_DEBUG=true
-BACKEND_PORT=5000
-
-# ── Kong Konnect (Path B — download / deploy) ─────────────────
-KONNECT_ADDR=https://eu.api.konghq.com/
-KONNECT_TOKEN=kpat_your_personal_access_token
-CONTROL_PLANE_ID=your-control-plane-uuid
-KONNECT_CONTROL_PLANE_NAME=your-control-plane-name
-
-# ── Kong Gateway ──────────────────────────────────────────────
-GATEWAY_URL=https://your-kong-proxy.example.com:8443
-PROXY_URL=https://your-kong-proxy.example.com:8443
-MCP_URL=https://your-kong-proxy.example.com:8443/mcp-listener
-
-# ── Azure OpenAI ──────────────────────────────────────────────
-AZURE_OPENAI_API_KEY=your-azure-openai-key
-AZURE_OPENAI_ENDPOINT=https://your-instance.openai.azure.com/
-AZURE_OPENAI_API_VERSION=2025-01-01-preview
-AZURE_OPENAI_DEPLOYMENT_NAME=gpt-4.1
-
-# ── LLM Proxy via Kong (optional) ────────────────────────────
-LLM_URL=https://your-kong-proxy.example.com:8443/llm
-LLM_APIKEY=your-llm-gateway-key
-
-# ── Auth ──────────────────────────────────────────────────────
-JWT_SECRET_KEY=your-secret-minimum-32-characters
-
-# ── Upload ────────────────────────────────────────────────────
-MAX_UPLOAD_SIZE=104857600    # 100MB
-ALLOWED_EXTENSIONS=json,yaml,yml
-
-# ── CORS ──────────────────────────────────────────────────────
-CORS_ORIGINS=http://localhost:3000,http://localhost:5000
-
-# ── Logging ───────────────────────────────────────────────────
-LOG_LEVEL=DEBUG
-LOG_FILE=logs/app.log
-```
-
-### Frontend `.env`
-
-```env
-REACT_APP_API_URL=http://localhost:5000
-REACT_APP_ENVIRONMENT=development
-```
-
-| Variable | Required | Used By |
-|----------|----------|---------|
-| `KONNECT_TOKEN` | ✅ | Path B: download-config, deploy |
-| `KONNECT_ADDR` | ✅ | Path B: download-config, deploy |
-| `CONTROL_PLANE_ID` | ✅ | Path B: deploy |
-| `AZURE_OPENAI_API_KEY` | ✅ | LLM service, AI assistant |
-| `AZURE_OPENAI_ENDPOINT` | ✅ | LLM service |
-| `JWT_SECRET_KEY` | ✅ | Auth token signing |
-| `GATEWAY_URL` | ✅ | Kong proxy base URL |
-| `MCP_URL` | ✅ | MCP listener endpoint |
-| `LLM_URL` | No | Optional LLM proxy |
-
----
-
-## 16. AI MCP Proxy Plugin Configuration
+## 13. AI MCP Proxy Plugin Configuration
 
 ### Conversion Mode — Applied to Every Route (Both Paths)
 
@@ -1274,7 +1074,7 @@ routes:
 
 ---
 
-## 17. Testing
+## 14. Testing
 
 ### Reference Configuration Files
 
@@ -1373,122 +1173,6 @@ deck gateway dump \
 
 ---
 
-## 18. Troubleshooting
-
-### `deck: command not found`
-
-```bash
-# macOS
-brew tap kong/deck && brew install deck
-
-# Linux
-curl -sL https://github.com/Kong/deck/releases/latest/download/deck_linux_amd64.tar.gz | tar xz
-sudo mv deck /usr/local/bin/
-
-# Windows — download from https://github.com/Kong/deck/releases
-```
-
----
-
-### Kong Konnect Download Fails (Path B)
-
-**Symptom:** `deck gateway dump` returns 401 or connection refused
-
-**Checks:**
-1. Token starts with `kpat_` and has **Kong Manager** role (not read-only)
-2. `KONNECT_ADDR` matches your region: `us.api.konghq.com` / `eu.api.konghq.com` / `au.api.konghq.com`
-3. Control plane name is correct (case-sensitive)
-4. Network access to the Konnect URL is not blocked by firewall/proxy
-
----
-
-### Existing Kong YAML Validation Fails (Path B)
-
-**Symptom:** Uploaded Kong YAML shows as invalid
-
-**Common causes:**
-
-| Error | Fix |
-|-------|-----|
-| Wrong format version | Ensure file uses Kong 3.0 format (`_format_version: "3.0"`) |
-| Missing service references | Routes must reference existing services in the same file |
-| Encrypted field values | Run `deck gateway dump --yes` to export without encryption |
-| Partial export | Export the full config, not just services or routes |
-
----
-
-### OpenAPI Validation Fails (Path A)
-
-| Error | Fix |
-|-------|-----|
-| Missing `openapi` field | Add `openapi: 3.0.0` |
-| Missing `info.title` | Add `title` under `info:` |
-| No paths defined | Add at least one path under `paths:` |
-| No server URL | Add `servers: [{url: "https://..."}]` |
-| Unresolved `$ref` | Inline all `$ref` or ensure they resolve within the file |
-
----
-
-### deck sync Overwrites Existing Kong Config
-
-**Symptom:** Routes not managed by this platform are deleted after deployment
-
-**Root cause:** `deck sync` without `--select-tag` replaces the entire Kong config
-
-**Fix:** Always use the tag flag:
-```bash
-deck sync --state file.yaml --select-tag TraditionalAPIsToAIAPIs
-```
-The platform always does this automatically. If running deck manually, always include the flag.
-
----
-
-### CORS Errors in Browser
-
-```env
-# backend/.env
-CORS_ORIGINS=http://localhost:3000,https://your-frontend-domain.com
-```
-
----
-
-### Session Expired
-
-The 10-minute inactivity timer has elapsed. Log in again. The timer resets on every click, keystroke, or navigation event while the browser tab is active.
-
----
-
-## 19. Roadmap & Planned Enhancements
-
-### Tool 1 — Input & Generation
-
-- [ ] **Option 1** — List and manage existing Kong MCP proxies from Konnect
-- [ ] Path B: Support `$ref` resolution when enhancing existing Kong configs
-- [ ] Custom `ai-mcp-proxy` plugin parameter overrides per route
-- [ ] Rate limiting and auth plugin templates alongside MCP plugin
-- [ ] Terraform / Pulumi IaC output alongside Kong YAML
-- [ ] Kong config diff viewer (side-by-side before/after enhancement)
-- [ ] API versioning support (`/v1`, `/v2` route generation)
-- [ ] Bulk enhancement: select which routes to enable MCP on (not all routes)
-
-### Platform Tools
-
-- [ ] **Tool 2** — AI Decision Gateway Pre-Processing
-- [ ] **Tool 3** — AI Response Enrichment
-- [ ] **Tool 4** — Natural Language API Access
-- [ ] **Tool 5** — AI Orchestrated Multi-API Workflows
-
-### Platform Infrastructure
-
-- [ ] Tab 5: Test Proxy — live MCP tool invocation from the UI
-- [ ] Analytics dashboard for deployed MCP tool usage metrics
-- [ ] RBAC per tool per user role
-- [ ] Multi-organization / multi-control-plane support
-- [ ] OpenAPI spec registry with version history
-- [ ] CI/CD integration (GitHub Actions)
-- [ ] Kong Gateway health monitoring
-
----
 
 ## References
 
