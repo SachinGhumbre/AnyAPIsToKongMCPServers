@@ -9,7 +9,7 @@ An enterprise-grade, full-stack automation platform that converts Any REST APIs 
 ## Table of Contents
 
 1. [Problem Statement](#1-problem-statement)
-2. [Solution: MCPMakerForKong](#2-solution-mcpmakerforkong)
+2. [Solution: MCPServerMakerForKong  ](#2-solution-MCPServerMakerForKong  )
 3. [Business Value & Benefits](#3-business-value--benefits)
 4. [How Kong MCP Works](#4-how-kong-mcp-works)
 5. [High-Level Architecture](#5-high-level-architecture)
@@ -57,19 +57,19 @@ Both categories:
 
 ---
 
-## 2. Solution: MCPMakerForKong
+## 2. Solution: MCPServerMakerForKong  
 
-**MCPMakerForKong** is an end-to-end automation platform that eliminates this gap for **both input types**. It accepts either an OpenAPI 3.x specification **or** an existing Kong proxy YAML as input, and outputs a fully functional Kong configuration with `ai-mcp-proxy` plugins on every route.
+**MCPServerMakerForKong  ** is an end-to-end automation platform that eliminates this gap for **both input types**. It accepts either an OpenAPI 3.x specification **or** an existing Kong proxy YAML as input, and outputs a fully functional Kong configuration with `ai-mcp-proxy` plugins on every route.
 
 ### Two Input Paths, One Output
 
 ```
 Path A — Net-New APIs:
-OpenAPI 3.x Spec  ──►  MCPMakerForKong  ──►  New Kong YAML + MCP Plugins  ──►  Deploy via deck sync
+OpenAPI 3.x Spec  ──►  MCPServerMakerForKong    ──►  New Kong YAML + MCP Plugins  ──►  Deploy via deck sync
 (your OAS file)         (this platform)       (services + routes + plugins)
 
 Path B — Existing Kong Proxies:
-Existing Kong YAML ──►  MCPMakerForKong  ──►  Enhanced Kong YAML + MCP Plugins  ──►  Deploy via deck sync
+Existing Kong YAML ──►  MCPServerMakerForKong    ──►  Enhanced Kong YAML + MCP Plugins  ──►  Deploy via deck sync
 (from Konnect or        (this platform)       (existing routes updated with
  local upload)                                 ai-mcp-proxy plugin)
 ```
@@ -84,7 +84,7 @@ For Path B, you can source the existing Kong proxy YAML in two ways:
 
 ### What Changes on Existing Routes
 
-When MCPMakerForKong processes an existing Kong YAML:
+When MCPServerMakerForKong   processes an existing Kong YAML:
 - Every existing **Route** gets an `ai-mcp-proxy` plugin added in `conversion-only` mode
 - An optional **listener route** (`/mcp-listener`) is created to aggregate all MCP tools via tag
 - No existing Services, Routes, or other plugins are removed or modified
@@ -96,7 +96,7 @@ When MCPMakerForKong processes an existing Kong YAML:
 
 ### Time & Cost Savings
 
-| Without MCPMakerForKong | With MCPMakerForKong |
+| Without MCPServerMakerForKong   | With MCPServerMakerForKong   |
 |--------------------------|----------------------|
 | Hours per API to author Kong YAML manually | **Minutes per API** |
 | Days to retrofit `ai-mcp-proxy` onto 100 existing routes | **Minutes for entire Kong config** |
@@ -165,7 +165,7 @@ graph TB
         KONG_YAML["Existing Kong YAML\n(local file or Konnect download)"]
     end
 
-    subgraph Platform["MCPMakerForKong Platform"]
+    subgraph Platform["MCPServerMakerForKong   Platform"]
         FE["Frontend\nReact + TypeScript\n:3000"]
         BE["Backend\nPython Flask\n:5000"]
         FE <-->|REST API| BE
@@ -538,7 +538,7 @@ The `--select-tag AnyAPIsToKongMCPServers` flag ensures `deck sync` only touches
 ## 9. Project Directory Structure
 
 ```
-MCPMakerForKong/
+MCPServerMakerForKong  /
 ├── backend/
 │   ├── app.py                              # Flask application + blueprint registration
 │   ├── requirements.txt                    # Python dependencies
